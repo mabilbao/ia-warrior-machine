@@ -65,7 +65,8 @@ public class WarriorMove extends Move{
 	
 	/**
 	 * 
-	 * Get the next movement from A*
+	 * Get the next movement from A*.
+	 * Base model: http://software-talk.org/blog/2012/01/a-star-java/
 	 * 
 	 * @param oldX
 	 * @param oldY
