@@ -1,20 +1,16 @@
 package ia.warrior;
-import ia.battle.camp.BattleField;
-import ia.battle.camp.FieldCell;
-import ia.battle.camp.FieldCellType;
-import ia.battle.camp.Warrior;
-import ia.battle.camp.WarriorData;
-import ia.battle.camp.actions.Action;
-import ia.battle.camp.actions.Attack;
-import ia.battle.camp.actions.Skip;
-import ia.battle.camp.actions.Suicide;
-import ia.exceptions.RuleException;
-import ia.warrior.actions.AFieldCell;
-import ia.warrior.actions.WarriorMove;
-
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+
+import ia.battle.core.BattleField;
+import ia.battle.core.ConfigurationManager;
+import ia.battle.core.FieldCell;
+import ia.battle.core.Warrior;
+import ia.battle.core.WarriorData;
+import ia.battle.core.actions.Action;
+import ia.battle.core.actions.Attack;
+import ia.battle.core.actions.Skip;
+import ia.exceptions.RuleException;
+import ia.warrior.actions.WarriorMove;
 
 
 public class MyWarrior extends Warrior {
@@ -33,37 +29,39 @@ public class MyWarrior extends Warrior {
 		WarriorData warriorData = battlefield.getEnemyData();
 		FieldCell enemyPosition = warriorData.getFieldCell();
 		
-		if ( this.countTurn == 1 ){
-			System.out.println("--------------------------------------------------");
-			System.out.println("Yo soy: " + this.getName()  + ". La posicion del enemigo: " + warriorData.getName() + " es X: " + enemyPosition.getX() + " Y: " + enemyPosition.getY() + ". Esta en nuestro rango? " + warriorData.getInRange());
-
+		WarriorData hunter = battlefield.getHunterData();
 		
-		}else if ( this.countTurn == 2 ){
-			System.out.println("Segundo turno, no hago una goma");
-		
-		
-		
-			action = skipWarrior();
-		
-		
+		if ( isPositionInRange(hunter.getFieldCell(), this.getPosition(), 5)) {
+			System.out.println("Hunter - SI");
 		}else{
-			System.out.println("Tercer turno, no hago una goma otra ve");
-			
-			
-			
-			
-			action = skipWarrior();
-			this.countTurn = 0;
-			System.out.println("--------------------------------------------------");
+			System.out.println("Hunter - NO");
 		}
 		
 		
-		if ( warriorData.getInRange() ){
+		if ( isPositionInRange(this.getPosition(), warriorData.getFieldCell(), this.getRange())) {
+			System.out.println("En RANGO --> ATACO");
 			action = atackWarrior(enemyPosition);
-			//action = new Suicide();
 		}else{
-			//action = new WarriorMove(this.getPosition(), enemyPosition);
-			action = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), enemyPosition.getX(), enemyPosition.getY());
+			action = getNextSpecialItem(battlefield);
+			if ( action == null ) {
+				System.out.println("NO Encuentro caja... Buscando al Rival");
+				action = getWarriorWay(battlefield, enemyPosition);
+				
+				if ( action == null ) {
+					
+					action = getEscape(battlefield, enemyPosition);
+					
+					if ( action == null ) {
+						System.out.println("NO Encuentro CAMINO NI ESCAPATORIA... ESPERO");
+						action = skipWarrior();
+					}
+					
+					System.out.println("ME ESCAPO");
+				}
+				
+			}else{
+				System.out.println("Buscando Cajas...");
+			}
 		}
 		
 		
@@ -80,9 +78,124 @@ public class MyWarrior extends Warrior {
 		return new Skip();
 	}
 	
+	
+	private WarriorMove getNextSpecialItem( BattleField battlefield ){
+		
+		int difference = 999;
+		boolean isSureWay = true;
+		WarriorMove nextSpecialItem = null;
+		ArrayList<FieldCell> specialItems = battlefield.getSpecialItems();
+		
+		WarriorData hunter = battlefield.getHunterData();
+		
+		if (specialItems.size() != 0){
+			for (FieldCell specialItem : specialItems) {
+				WarriorMove movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), specialItem.getX(), specialItem.getY());
+				
+				if ( movements.getNextMove().size() < difference ) {
+					for (FieldCell fieldCell : movements.getNextMove()) {
+						if (isPositionInRange(hunter.getFieldCell(), fieldCell, 5)){
+							isSureWay = false;
+						}
+					}
+					
+					if ( isSureWay ){
+						nextSpecialItem = movements;
+						difference = movements.getNextMove().size();
+					}
+				}
+				
+				isSureWay = true;
+			}	
+		}
+		
+		return nextSpecialItem;
+		
+	}
+	
+	private WarriorMove getWarriorWay(BattleField battlefield, FieldCell enemyPosition){
+		
+		boolean isSureWay = true;
+		WarriorMove movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), enemyPosition.getX(), enemyPosition.getY());
+		WarriorData hunter = battlefield.getHunterData();
+		
+		for (FieldCell fieldCell : movements.getNextMove()) {
+			if (isPositionInRange(hunter.getFieldCell(), fieldCell, 5)){
+				isSureWay = false;
+			}
+		}
+		
+		if ( isSureWay ){
+			return movements;
+		}else{
+			return null;
+		}
+	}
+	
+	private WarriorMove getEscape(BattleField battlefield, FieldCell enemyPosition){
+		
+		boolean isSureWay = true;
+		WarriorMove movements = null;
+		WarriorData hunter = battlefield.getHunterData();
+		
+		ConfigurationManager configurationManager = ConfigurationManager.getInstance();
+		int mapHeight = configurationManager.getMapHeight();
+		int mapWidth = configurationManager.getMapWidth();
+		
+		if ( enemyPosition.getX() <= (mapWidth/2) ) {
+			// ir a la derecha
+			if ( enemyPosition.getY() <= (mapHeight/2) ) {
+				// ir ABAJO
+				if ( this.getPosition().getX() == mapWidth-1 && this.getPosition().getY() == 1 ){
+					return null;
+				}
+				movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), mapWidth-1, 1);
+				
+			}else{
+				// ir ARRIBA
+				if ( this.getPosition().getX() == mapWidth-1 && this.getPosition().getY() == mapHeight-1 ){
+					return null;
+				}
+				movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), mapWidth-1, mapHeight-1);
+			}
+			
+		}else{
+			// ir a la izquierda
+			if ( enemyPosition.getY() <= (mapHeight/2) ) {
+				// ir ABAJO
+				if ( this.getPosition().getX() == 1 && this.getPosition().getY() == 1 ){
+					return null;
+				}
+				movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), 1, 1);
+			}else{
+				// ir ARRIBA
+				if ( this.getPosition().getX() == 1 && this.getPosition().getY() == mapHeight-1 ){
+					return null;
+				}
+				movements = new WarriorMove(this.getPosition().getX(), this.getPosition().getY(), 1, mapHeight-1);
+			}
+		}
+		
+		return movements;
+	}	
+	
+	private boolean isPositionInRange(FieldCell from, FieldCell to, int range) {
+		int centerX = from.getX();
+		int centerY = from.getY();
+
+		int x = to.getX();
+		int y = to.getY();
+
+		if ((Math.pow(centerX - x, 2)) + (Math.pow(centerY - y, 2)) <= Math.pow(range, 2)) {
+			return true;
+		}
+
+		return false;
+	}
+	
 	@Override
 	public void wasAttacked(int damage, FieldCell source) {
-		// TODO Auto-generated method stub
+		System.out.println("FUI ATACADO - " + damage);
 	}
 
 	@Override

@@ -1,32 +1,25 @@
 package ia.warrior.actions;
 
-import ia.battle.camp.BattleField;
-import ia.battle.camp.FieldCell;
-import ia.battle.camp.FieldCellType;
-import ia.battle.camp.actions.Action;
-import ia.battle.camp.actions.Move;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import ia.battle.core.BattleField;
+import ia.battle.core.FieldCell;
+import ia.battle.core.FieldCellType;
+import ia.battle.core.actions.Move;
+
 public class WarriorMove extends Move{
 
-	private FieldCell nextMove;
+	private ArrayList<FieldCell> nextMove;
 	
 	public WarriorMove (int oldX, int oldY, int newX, int newY) {
 		nextMove = this.moveWarrior(oldX, oldY, newX, newY);
 	}
 	
-	public WarriorMove (FieldCell myPosition, FieldCell enemyPosition) {
-		nextMove = this.moveWarrior(myPosition, enemyPosition);
-	}
-	
 	@Override
 	public ArrayList<FieldCell> move() {
-		ArrayList<FieldCell> cells = new ArrayList<FieldCell>();
-		cells.add(nextMove);
-		return cells;
+		return nextMove;
 	}
 	
 	/**
@@ -74,7 +67,7 @@ public class WarriorMove extends Move{
 	 * @param newY
 	 * @return
 	 */
-	private FieldCell moveWarrior(int oldX, int oldY, int newX, int newY){
+	private ArrayList<FieldCell> moveWarrior(int oldX, int oldY, int newX, int newY){
 
 		List<AFieldCell> openList = new LinkedList<AFieldCell>();
 		List<AFieldCell> closedList = new LinkedList<AFieldCell>();
@@ -98,7 +91,12 @@ public class WarriorMove extends Move{
 
 			 // found goal
 			if ((current.getFieldCell().getX() == newX) && (current.getFieldCell().getY() == newY)) {
-				return calcPath( actualPosition, current ).get(0).getFieldCell();
+//				return calcPath( actualPosition, current ).get(0).getFieldCell();
+				ArrayList<FieldCell> response = new ArrayList<FieldCell>();
+				for (AFieldCell aFieldCell : calcPath( actualPosition, current )) {
+					response.add(aFieldCell.getFieldCell());
+				}
+				return response;
 			}
 
 			// for all adjacent nodes:
@@ -215,5 +213,9 @@ public class WarriorMove extends Move{
 			}
 		}
     	return false;
-    }	
+    }
+
+	public ArrayList<FieldCell> getNextMove() {
+		return nextMove;
+	}	
 }

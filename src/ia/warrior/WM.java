@@ -1,6 +1,10 @@
 package ia.warrior;
-import ia.battle.camp.Warrior;
-import ia.battle.camp.WarriorManager;
+import java.util.ArrayList;
+
+import ia.battle.core.BattleField;
+import ia.battle.core.FieldCell;
+import ia.battle.core.Warrior;
+import ia.battle.core.WarriorManager;
 import ia.exceptions.RuleException;
 
 
@@ -8,14 +12,20 @@ public class WM extends WarriorManager {
 
 	@Override
 	public String getName() {
-		return "Equipo Marton";
+		return "Marton";
 	}
 
 	@Override
 	public Warrior getNextWarrior() throws RuleException {
+//		name, health, defense, strength, speed, range
 		
-		//return new WarriorExample1("Marton 2", 30, 20, 20, 10, 20);
-		return new MyWarrior("Marton 2", 30, 20, 20, 20, 10);
+		ArrayList<FieldCell> specialItems = BattleField.getInstance().getSpecialItems();
+		
+//		if ( specialItems.size() > 10 ){
+			return new MyWarrior("Marton", 17, 10, 20, 43, 10);
+//		}else{
+//			return new MyWarrior("Marton", 17, 20, 40, 13, 10);
+//		}
 	}
 
 }

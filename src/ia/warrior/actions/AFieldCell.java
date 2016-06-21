@@ -1,7 +1,5 @@
 package ia.warrior.actions;
-import ia.battle.camp.FieldCell;
-import ia.battle.camp.FieldCellType;
-import ia.battle.camp.SpecialItem;
+import ia.battle.core.FieldCell;
 
 public class AFieldCell {
 
