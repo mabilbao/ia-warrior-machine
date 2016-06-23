@@ -21,11 +21,15 @@ public class WM extends WarriorManager {
 		
 		ArrayList<FieldCell> specialItems = BattleField.getInstance().getSpecialItems();
 		
-//		if ( specialItems.size() > 10 ){
-			return new MyWarrior("Marton", 17, 10, 20, 43, 10);
-//		}else{
-//			return new MyWarrior("Marton", 17, 20, 40, 13, 10);
-//		}
+		if ( specialItems.size() >= 10){
+			return new MyWarrior("mv", 20, 7, 20, 43, 10);
+	
+		// Si la densidad de campos es alta, no es necesario que vaya a buscar al rival, pero si debo huir
+		}else if ( specialItems.size() < 10 && specialItems.size() >= 5 ){
+			return new MyWarrior("mm", 28, 7, 30, 25, 10);
+		}else{
+			return new MyWarrior("mf", 35, 5, 35, 15, 10);
+		}
 	}
 
 }
